@@ -40,7 +40,7 @@ def exibir_corretivas():
     df = load_excel_data(FILE_XLS)    
 
     #df_corretivas = df[COLUNAS_EXIBICAO].copy()
-
+    df_corretivas = df
     # Renomear colunas
     df_corretivas = df_corretivas.rename(columns=MAPEAMENTO_COLUNAS)
     # Coloca cor na coluna Status
