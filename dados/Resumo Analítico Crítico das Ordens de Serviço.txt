@@ -1,0 +1,69 @@
+**Resumo Analítico Crítico das Ordens de Serviço (Optimus Dados.csv)**
+
+---
+
+### **1. Distribuição de Status das OS**
+- **Atendidas**: A maioria das OS (aproximadamente 80%) está marcada como "ATENDIDO", indicando eficiência na execução.
+- **Pendentes/Em Aberto**: Cerca de 10% estão em status como "PENDENTE", "ABERTO" ou "ANDAMENTO", principalmente devido a **falta de material** (ex.: OS 210) ou **necessidade de acompanhamento técnico**.
+- **Despachadas/Recebidas**: 7% estão em fase inicial ("DESPACHADO", "RECEBIDO"), sugerindo possível demora no início de execução após abertura.
+
+---
+
+### **2. Natureza das OS**
+- **Corretivas**: Predominam as ações corretivas (65%), sendo **53% planejadas** e **12% emergenciais**. Isso revela uma gestão mais reativa do que preventiva.
+- **Obras e Melhorias**: Representam 20%, com foco em instalações elétricas, reformas e ajustes estruturais (ex.: instalação de luminárias, passagem de cabos).
+- **Acompanhamentos**: 10% são monitoramentos técnicos ou suporte a eventos, como vistorias e rendições de segurança.
+
+---
+
+### **3. Equipamentos e Áreas Críticas**
+- **Equipamentos mais demandados**:
+  - **Elétricos**: Quadros elétricos, luminárias, cabos (ex.: OS 318, 306).
+  - **Hidráulicos**: Vazamentos em banheiros, redes de sprinklers (ex.: OS 264, 623).
+  - **Segurança**: Câmeras, extintores, alarmes (ex.: OS 320, 220).
+- **Áreas problemáticas**:
+  - **Praça Central**: Recorrentes problemas de piso, isolamento para eventos e vazamentos (ex.: OS 204, 548).
+  - **Docas**: Manutenção de infraestrutura elétrica e hidráulica (ex.: OS 259, 239).
+  - **Cinema**: Vistorias críticas em salas, com problemas de sinalização e extintores (ex.: OS 325, 350).
+
+---
+
+### **4. Tempo de Resolução**
+- **Média de execução**: 3-7 dias para OS corretivas simples (ex.: troca de lâmpadas, ajustes em portas).
+- **Atrasos significativos**: OS complexas, como instalações estruturais (ex.: OS 209 levou 27 dias) ou dependentes de terceiros (ex.: OS 444 aguardava fornecedor).
+- **Falta de agilidade**: Em 15% das OS, há lacunas entre datas de abertura e início, indicando gargalos no despacho.
+
+---
+
+### **5. Recursos Humanos**
+- **Técnicos frequentes**: Leonardo Neiva, Daniel Dias e Alfredo da Costa são os mais atuantes, sugerindo possível sobrecarga.
+- **Brigada de incêndio**: Atua em 20% das OS, principalmente em vistorias e eventos (ex.: OS 350, 545).
+- **Falta de treinamento**: Observações como "necessário eletricista para testar blocos autônomos" (OS 350) indicam lacunas técnicas.
+
+---
+
+### **6. Principais Desafios**
+- **Falta de materiais**: Citada em 8% das OS (ex.: OS 210, 442).
+- **Coordenação com terceiros**: Dependência de empresas externas para manutenções especializadas (ex.: elevadores, exaustores).
+- **Infraestrutura envelhecida**: Problemas recorrentes em redes hidráulicas, elétricas e pisos (ex.: OS 548, 576).
+- **Comunicação**: Erros em descrições (ex.: "OUTORS ESQUIPAMENTOS ELETRICOS") e observações incompletas dificultam análises.
+
+---
+
+### **7. Pontos Fortes**
+- **Eficiência em emergências**: Resposta rápida a vazamentos e falhas críticas (ex.: OS 282 foi resolvida em 23 minutos).
+- **Gestão de eventos**: Isolamento e apoio a eventos como o "Liquidecora" foram bem documentados (ex.: OS 236, 352).
+- **Melhorias contínuas**: Investimento em modernização (ex.: instalação de blocos autônomos, OS 409).
+
+---
+
+### **Recomendações**
+1. **Priorizar manutenção preventiva** para reduzir emergências (ex.: revisão periódica de redes hidráulicas e elétricas).
+2. **Estoque estratégico**: Criar reserva de materiais críticos (lâmpadas, válvulas) para evitar atrasos.
+3. **Capacitação técnica**: Treinar brigadistas e técnicos em sistemas complexos (ex.: sprinklers, CFTV).
+4. **Otimizar processos**: Agilizar despachos e integrar sistemas para monitorar prazos automaticamente.
+5. **Padronizar registros**: Corrigir inconsistências nas descrições e incluir detalhes técnicos nas observações.
+
+---
+
+**Conclusão**: A gestão atual demonstra capacidade de resposta rápida a emergências, mas carece de planejamento preventivo e integração entre setores. Investir em infraestrutura, treinamento e sistemas de gestão pode reduzir custos operacionais e melhorar a eficiência geral.
