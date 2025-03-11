@@ -1,6 +1,6 @@
 import streamlit as st
 from utils import header_page, header_side, widget, card
-from pages.pg_corretivas import exibir_corretivas
+from part_corretivas import exibir_corretivas
 
 # Constantes
 APP_TITLE = 'Geopapp'
