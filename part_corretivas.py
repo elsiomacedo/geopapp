@@ -38,17 +38,10 @@ def exibir_corretivas():
         df (pandas.DataFrame): DataFrame com os dados para exibição.
     """
     df = load_excel_data(FILE_XLS)    
-    # Selecionar colunas para exibição
-    colunas_disponiveis = set(df.columns)
-    colunas_faltando = [col for col in COLUNAS_EXIBICAO if col not in colunas_disponiveis]
-
-    if colunas_faltando:
-        st.error(f"As seguintes colunas estão ausentes: {colunas_faltando}")
-    else:
-        df_corretivas = df[COLUNAS_EXIBICAO].copy()
 
     #df_corretivas = df[COLUNAS_EXIBICAO].copy()
-        # Renomear colunas
+
+    # Renomear colunas
     df_corretivas = df_corretivas.rename(columns=MAPEAMENTO_COLUNAS)
     # Coloca cor na coluna Status
     df_corretivas = df_corretivas.style.map(colorir_status, subset=["STATUS"])  
