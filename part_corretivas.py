@@ -42,7 +42,7 @@ def exibir_corretivas():
     #df_corretivas = df[COLUNAS_EXIBICAO].copy()
     df_corretivas = df
     # Renomear colunas
-    df_corretivas = df_corretivas.rename(columns=MAPEAMENTO_COLUNAS)
+    #df_corretivas = df_corretivas.rename(columns=MAPEAMENTO_COLUNAS)
     # Coloca cor na coluna Status
     df_corretivas = df_corretivas.style.map(colorir_status, subset=["STATUS"])  
     
