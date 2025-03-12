@@ -1,4 +1,3 @@
-import streamlit as st
 import pandas as pd
 from pathlib import Path
 
@@ -37,7 +36,7 @@ def load_excel_data(file_name: str):
         # Remover a última linha e reiniciar o índice
         df = df.iloc[:-1].reset_index(drop=True)
         # Remover colunas indesejadas
-
+      
         # Formata datas para DATETIME e cria colunas com nomenclatura com underscore
         df['DATA DE ABERTURA'] = pd.to_datetime(df['DATA DE ABERTURA'], format='%d/%m/%Y')
         df['HORA DE ABERTURA'] = df['HORA DE ABERTURA'].apply(parse_time)
@@ -78,7 +77,7 @@ def load_excel_data(file_name: str):
             errors='ignore',
             inplace=True
         )                 
-        print(df.columns)
+
     except Exception as e:
         print(f"Erro ao processar o arquivo: {e}")
         return None

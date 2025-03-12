@@ -2,6 +2,7 @@ import streamlit as st
 from datasets.ds_corretivas import load_excel_data
 
 FILE_XLS = 'historico_oss_corretivas.xls'
+
 CORES_STATUS = {
     "ATENDIDO": "green",
     "ABERTO": "red"
@@ -37,8 +38,7 @@ def exibir_corretivas():
     Args:
         df (pandas.DataFrame): DataFrame com os dados para exibição.
     """
-    df = load_excel_data(FILE_XLS)    
-
+    df = load_excel_data('historico_oss_corretivas.xls')    
     df_corretivas = df[COLUNAS_EXIBICAO].copy()
     # Renomear colunas
     df_corretivas = df_corretivas.rename(columns=MAPEAMENTO_COLUNAS)
