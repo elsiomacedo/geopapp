@@ -18,18 +18,18 @@ line_space = f"""
 
 logo_pag = get_image_base64("./imgs/casapark.png")
 header_page = f"""
-<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: -40px; margin-bottom: -10px;">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: -50px; margin-bottom: -10px;">
     <img src="data:image/png;base64,{logo_pag}" 
-         style="width: 180px; max-width: 100%; height: auto;">
+         style="width: 120px; height: auto;">
     <div>
-        <h3 style="margin-top: 18px; font-weight: bold; color: #4682B4; line-height: 1.2;">Gestão de Ordens de Serviços</h3>      
+        <h4 style="font-weight: bold; color: #4682B4; line-height: 1;">Gestão de Ordens de Serviços</h4>      
     </div>
 </div>
-<hr style="margin-top: -15px; margin-bottom: 10px; border: 1px solid #ccc;">
+<hr style="margin-top: -10px; margin-bottom: 5px; border: 1px solid #ccc;">
 """    
 
 # HTML Header Sidebar
-logo_side = get_image_base64("./imgs/EMConsult.png")
+#logo_side = get_image_base64("./imgs/EMConsult.png")
 header_side = f"""
     <div >
         <h3 style="margin-top: -35px; color: #696969; text-align: center;">GEOP Gerência Operacional</b></h3>
@@ -49,12 +49,4 @@ def widget(texto1, texto2, texto3):
                 </div>
             """)
 
-def card(Texto):
-    return (f"""
-                <div class="card" style="width: 18rem;">
-                <div class="card-body">
-                    <h5 class="card-title">{Texto}</h5>
-                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                </div>
-                </div>
-            """)
+
