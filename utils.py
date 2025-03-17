@@ -18,14 +18,14 @@ line_space = f"""
 
 logo_pag = get_image_base64("./imgs/casapark.png")
 header_page = f"""
-<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: -50px; margin-bottom: -10px;">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: -50px; margin-bottom: -5px;">
     <img src="data:image/png;base64,{logo_pag}" 
          style="width: 120px; height: auto;">
     <div>
         <h4 style="font-weight: bold; color: #4682B4; line-height: 1;">Gestão de Ordens de Serviços</h4>      
     </div>
 </div>
-<hr style="margin-top: -10px; margin-bottom: 5px; border: 1px solid #ccc;">
+<hr style="margin-top: -10px; margin-bottom: 10px; border: 1px solid #ccc;">
 """    
 
 # HTML Header Sidebar
