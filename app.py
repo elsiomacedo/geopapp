@@ -5,7 +5,8 @@ APP_TITLE = 'Geopapp'
 APP_ICON = "imgs/roda.png"
 LOGO_PATH = "imgs/roda.png"
 SIDEBAR_INIT = "collapsed"    
-FILE_XLS = 'historico_oss_corretivas.xls'
+CORE_XLS = 'historico_oss_corretivas.xls'
+TECNO_XLS = 'relatorio_historico_atendimento.xls'
 
 st.set_page_config(
     page_title=APP_TITLE,
@@ -14,26 +15,16 @@ st.set_page_config(
     layout="wide"
 )
 
-from utils import header_page, header_side, widget
-from datasets.ds_corretivas import load_excel_data, exibir_corretivas, calculo_metricas
+from components import header_page, header_side, load_css
+from datasets.ds_core import exibir_corretivas, load_excel, normalize_corretivas, metricas_core, normalize_cortecnicos
 from streamlit_extras.metric_cards import style_metric_cards
 import matplotlib.pyplot as plt
 import numpy as np
 
-def configurar_sidebar():
-    """Configura a barra lateral do aplicativo."""
-    with st.sidebar:
-        st.markdown(header_side, unsafe_allow_html=True)
-
-def exibir_cabecalho():
-    """Exibe o cabeçalho da página."""
-    st.markdown(header_page, unsafe_allow_html=True)
-
 def exibe_metricas(df):
     """Exibe as métricas calculadas a partir dos dados fornecidos."""
-    metricas_df = calculo_metricas(df) 
-    
-    print(df)
+    metricas_df = metricas_core(df) 
+ 
     print(metricas_df)
 
     referencia_atual = "2025-03"  # Exemplo de referência atual
@@ -121,30 +112,42 @@ def exibe_metricas(df):
         
         # Exibe o gráfico no Streamlit
         st.pyplot(fig)
-def render_tabs(df):
-    """Configura e exibe as abas do aplicativo."""
-    abas = st.tabs(['Corretivas', 'Agrupados', 'Resumo Mensal'])
-    with abas[0]:
-        exibe_metricas(df)
-    with abas[1]:
 
+def render_tabs(df_corretivas, df_tecnicos):
+    """Configura e exibe as abas do aplicativo."""
+    abas = st.tabs([
+        ':material/bar_chart_4_Bars: **Dashboard** Corretivas', 
+        ':material/Order_Approve: OS **Corretivas**', 
+        ':material/Build: Equipe de Trabalho'
+    ])
+    with abas[0]:
+        pass
+        #exibe_metricas(df)
+    with abas[1]:
         with st.expander("Filtros"):
                 st.write('''
                     The chart above shows some numbers I picked for you.
                     I rolled actual dice for these, so they're *guaranteed* to
                     be random.
                 ''')
-
-        exibir_corretivas(df)
-    with abas[2]:
-        st.write("Conteúdo em desenvolvimento...")
+        # Exibir os dados em uma tabela   
+        exibir_corretivas(df_corretivas)   
+    with abas[2]:    
+        st.dataframe(df_tecnicos, height=400, hide_index=True)
 
 def main():
-    """Função principal do aplicativo."""
-    configurar_sidebar()
-    exibir_cabecalho()
-    df = load_excel_data(FILE_XLS)
-    render_tabs(df)
+    
+    st.markdown(f'<style>{load_css()}</style>', unsafe_allow_html=True)
+    st.markdown(header_page(), unsafe_allow_html=True)
+    st.sidebar.markdown(header_side(), unsafe_allow_html=True)   
+
+    df_corretivas = load_excel(CORE_XLS)        # Carrega arquivo Excel do OPTIMUS
+    df_corretivas = normalize_corretivas(df_corretivas)    # Normaliza os dados do Dataframe
+
+    df_tecnicos = load_excel(TECNO_XLS)        # Carrega arquivo Excel do OPTIMUS
+    df_tecnicos = normalize_cortecnicos(df_tecnicos)    # Normaliza os dados do Dataframe
+
+    render_tabs(df_corretivas, df_tecnicos)
 
 if __name__ == "__main__":
     main()
