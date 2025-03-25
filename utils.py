@@ -50,3 +50,6 @@ def widget(texto1, texto2, texto3):
             """)
 
 
+        <img src="data:image/png;base64,{logo_pag}" 
+            style="width: 80px; height: auto;">
+        <div>

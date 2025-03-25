@@ -1,8 +1,13 @@
 import streamlit as st
+from components import load_css, header_page
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
+import time
+
+CORE_XLS = 'historico_oss_corretivas.xls'
+TECNO_XLS = 'relatorio_historico_atendimento.xls'
 
 def parse_time(time_str: str) -> Optional[datetime.time]:
     """
@@ -24,6 +29,13 @@ def parse_time(time_str: str) -> Optional[datetime.time]:
             return pd.to_datetime(time_str, format='%H:%M').time()
         except ValueError:
             return None
+
+def last_access(file_name):
+    # Caminho do arquivo
+    caminho_arquivo = Path('dados') / file_name     
+    # Data da última modificação
+    data_modificacao = time.strftime('%d/%m/%Y', time.localtime(caminho_arquivo.stat().st_mtime))
+    return data_modificacao   
 
 def load_excel(file_name: str) -> Optional[pd.DataFrame]:
     """
@@ -118,10 +130,9 @@ def normalize_corretivas(df) -> Optional[pd.DataFrame]:
 
         # Atualiza o DataFrame original com os tempos calculados
         df.update(df_atendido)
-         # Salva o DataFrame processado em um arquivo CSV
-        current_date = datetime.now().strftime('%Y%m%d')
-        output_file_name = f'core_dados_{current_date}.csv'
-        df.to_csv(f'dados/{output_file_name}', index=False, encoding='utf-8')
+        # Salva o DataFrame processado em um arquivo CSV        
+        #output_file_name = f'core_dados.csv'
+        #df.to_csv(f'dados/{output_file_name}', index=False, encoding='utf-8')
 
     return df
 
@@ -137,7 +148,7 @@ def normalize_cortecnicos(df) -> Optional[pd.DataFrame]:
     # Formata datas e horas de início
     df['DATA INICIO'] = pd.to_datetime(df['DATA INICIO'], format='%d/%m/%Y')
     df['HORA INICIO'] = df['HORA INICIO'].apply(parse_time)
-    df['DTH_INICIO'] = pd.to_datetime(
+    df['INICIO'] = pd.to_datetime(
         df['DATA INICIO'].dt.strftime('%d/%m/%Y') + ' ' +
         df['HORA INICIO'].apply(lambda t: t.strftime('%H:%M:%S') if t else "00:00:00"),
         format='%d/%m/%Y %H:%M:%S'
@@ -147,149 +158,116 @@ def normalize_cortecnicos(df) -> Optional[pd.DataFrame]:
     if 'DATA TERMINO' in df.columns and 'HORA TERMINO' in df.columns:
         df['DATA TERMINO'] = pd.to_datetime(df['DATA TERMINO'], format='%d/%m/%Y', errors='coerce')
         df['HORA TERMINO'] = df['HORA TERMINO'].apply(parse_time)
-        df['DTH_TERMINO'] = pd.to_datetime(
+        df['TERMINO'] = pd.to_datetime(
             df['DATA TERMINO'].dt.strftime('%d/%m/%Y') + ' ' +
             df['HORA TERMINO'].apply(lambda t: t.strftime('%H:%M:%S') if t else "00:00:00"),
             format='%d/%m/%Y %H:%M:%S'
         )
     else:
-        df['DTH_TERMINO'] = pd.NaT
+        df['TERMINO'] = pd.NaT
 
     
     # Converte a coluna 'ID' para inteiro e depois para string
-    df['N° OS'] = pd.to_numeric(df['ID'], errors='coerce').fillna(0).astype(int).astype(str)    
+    df['Nº OS'] = pd.to_numeric(df['ID'], errors='coerce').fillna(0).astype(int).astype(str)    
     # Calcula o tempo de execução
-    df['TEMPO EXECUCAO'] = (df['DTH_TERMINO'] - df['DTH_INICIO']).apply(lambda x: f"{int(x.total_seconds() // 3600):02}:{int((x.total_seconds() % 3600) // 60):02}" if pd.notnull(x) else None)
-    # Remove colunas desnecessárias
-    columns_to_drop = ["IS", "TIPO DE NEGÓCIO", "LOCAL", "DATA INICIO", "HORA INICIO", "DATA TERMINO", "HORA TERMINO"]
-    df.drop(columns=columns_to_drop, errors='ignore', inplace=True)
+    df['TEMPO EXECUCAO'] = (df['TERMINO'] - df['INICIO']).apply(lambda x: f"{int(x.total_seconds() // 3600):02}:{int((x.total_seconds() % 3600) // 60):02}" if pd.notnull(x) else None)
+
+    df.columns = df.columns.str.strip()
+
+    # Filtrar tecno_dados para incluir apenas OS CORRETIVA
+    df_corretiva = df[df['TIPO'] == 'OS Corretiva']
+
+    columns_to_drop = ["IS", 'TIPO',  "TIPO DE NEGÓCIO", "LOCAL", "DATA INICIO", "HORA INICIO", "DATA TERMINO", "HORA TERMINO"]
+
+    df_corretiva = df_corretiva.drop(columns=columns_to_drop, errors='ignore')    
+
     COLUNAS_EXIBICAO = [
-        'N° OS', 'TIPO', 'TECNICO', 'TIPO TECNICO','ANDAR', 'ÁREA','EQUIPAMENTO', 'DTH_INICIO', 'DTH_TERMINO', 'TEMPO EXECUCAO'
+        'Nº OS', 'TECNICO', 'TIPO TECNICO', 'INICIO', 'TERMINO', 'TEMPO EXECUCAO'
     ]
 
-    df = df[COLUNAS_EXIBICAO].copy()   
+    df_corretiva = df_corretiva[COLUNAS_EXIBICAO].copy()   
 
-    # Salva o DataFrame processado em um arquivo CSV
-    current_date = datetime.now().strftime('%Y%m%d')
-    output_file_name = f'tecno_dados_{current_date}.csv'
-    df.to_csv(f'dados/{output_file_name}', index=False, encoding='utf-8')
-    print(df)
+    # Salva o DataFrame processado em um arquivo CSV  
+    #output_file_name = f'tecno_dados.csv'
+    #df_corretiva.to_csv(f'dados/{output_file_name}', index=False, encoding='utf-8')
+    
     return df
 
-def colorir_status(value):
-    """
-    Função para aplicar cores na coluna STATUS.
-        Args:
-        value: Valor da célula. 
-    Returns:
-        str: String CSS para estilizar a célula.
-    """
-    CORES_STATUS = {
-        "ATENDIDO": "green",
-        "ABERTO": "red"
-    }       
-    if isinstance(value, str) and value in CORES_STATUS:
-             return f"color: {CORES_STATUS[value]}; font-weight: bold;"
-    return ""
+def Criadb(corretivas,  cortecnicos):
 
-def exibir_corretivas(df):
-    """
-    Exibe o Dataframe de OS corretivos.
-        Args:
-        df (pandas.DataFrame): DataFrame com os dados para exibição.
-    """    
-    COLUNAS_EXIBICAO = [
-        'Nº OS', 'STATUS', 'TIPO DE OS','NATUREZA',  
-        'SOLICITANTE', 'DESCRIÇÃO', 'TÉCNICO', 'TIPO TÉCNICO', 'DTH_ABERTURA', 'DTH_INICIO', 'DTH_TERMINO'
-    ]
-    MAPEAMENTO_COLUNAS = {
-        'TIPO TÉCNICO' : 'EQUIPE',
-        'DTH_ABERTURA' : 'Data/Hora Abertura',
-        'DTH_INICIO': 'Data/Hora Início',
-        'DTH_TÉRMINO': 'Data/Hora Término'
-    }
-    df_corretivas = df[COLUNAS_EXIBICAO].copy()
+    # Selecionar colunas específicas de cada DataFrame
+    core_cols = ['Nº OS', 'ANDAR', 'ÁREA', 'SOLICITANTE', 'DESCRIÇÃO', 'STATUS',
+                    'NATUREZA', 'TIPO DE OS', 'PROBLEMA', 'TIPO DE EQUIPAMENTO',
+                    'TAG EQUIPAMENTO', 'SERVIÇO EXECUTADO', 'OBSERVAÇÃO', 'PRIORIDADE', 
+                    'DTH_ABERTURA', 'DTH_INICIO', 'DTH_TERMINO', 'TS', 'TA', 'TE'    
+                ]
+    tecno_cols = ['Nº OS', 'TECNICO', 'TIPO TECNICO', 'INICIO', 'TERMINO', 'TEMPO EXECUCAO']
 
-    # Renomear colunas
-    df_corretivas = df_corretivas.rename(columns=MAPEAMENTO_COLUNAS)
-    # Coloca cor na coluna Status
-    df_corretivas = df_corretivas.style.map(colorir_status, subset=["STATUS"])  
-    # Converta o DataFrame para HTML
+    # Realizar o merge
+    merged_df = pd.merge(
+        corretivas[core_cols],
+        cortecnicos[tecno_cols],
+        on='Nº OS',
+        how='left'
+    )
+    # Exibir o resultado
+
+    return(merged_df)    
+
+def gravacsv(arq_file):
+    # Salva o DataFrame processado em um arquivo CSV  
+    output_file_name = f'DBCorretivas.csv'
+    arq_file.to_csv(f'dados/{output_file_name}', index=False, encoding='utf-8')
+
+def geradb():
+    """Carrega, normaliza e atualiza os dados dos arquivos Excel."""
+    my_bar = st.progress(0, "Carregando, Analisando e Atualizando os dados. Aguarde...")
+
+    core_data = load_excel(CORE_XLS)
+    my_bar.progress(15, "Carregando OS Corretivas ............")
+    df_coretivas = normalize_corretivas(core_data)    
+    my_bar.progress(25, "Normalizando OS Corretivas ..........")   
+    tecno_data = load_excel(TECNO_XLS)     
+    my_bar.progress(40, "Carregando Dados dos Técnicos .......")   
+    df_cortecnicos = normalize_cortecnicos(tecno_data)         
+    my_bar.progress(60, "Normalizando Dados dos Técnicos .....")    
+    my_bar.progress(75, "Construindo database ................")    
+    dbarq = Criadb(df_coretivas, df_cortecnicos)    
+    my_bar.progress(90, "Salvando Banco de Dados .............")    
+    gravacsv(dbarq)
+    my_bar.progress(100, text="Processamento Concluído")
+    st.success("Dados atualizados com sucesso!")
     
-    st.dataframe(df_corretivas, height=400, hide_index=True)
+    return df_coretivas,  df_cortecnicos
 
-    return
+def atualdata(): 
+    """Display the data update page with last update information and update button."""
+    st.header('Atualiza dados do Sistema')
 
-def metricas_core(df):
-    """
-    Calcula os totais mensais de OS abertas, não atendidas, atendidas, backlogs atendidos e backlog acumulado.
-    Args:
-        df (pandas.DataFrame): DataFrame com os dados de OS.  
-    Returns:
-        pandas.DataFrame: DataFrame com os totais mensais.
-    """
-    totais_mensais = []
+       # Display last update date
+    last_update_date = last_access('DBCorretivas.csv')
+    st.success(f'Data do Último Arquivo de Atualização: {last_update_date}')
 
-    # Garantir que as colunas de data estão no formato datetime
-    df['DTH_ABERTURA'] = pd.to_datetime(df['DTH_ABERTURA'])
-    df['DTH_TERMINO'] = pd.to_datetime(df['DTH_TERMINO'])
+    if 'clicked' not in st.session_state:
+        st.session_state.clicked = False
+    if 'button_state' not in st.session_state:
+        st.session_state.button_state = False
 
-    # Ordenar DataFrame por data de abertura (garante a correta acumulação do backlog)
-    df = df.sort_values('DTH_ABERTURA')
+    def click_button():
+        st.session_state.button_state = True        
+        st.session_state.clicked = True
 
-    for ano in df['DTH_ABERTURA'].dt.year.unique():
-        for mes in range(1, 13):
-            # Filtros para o mês atual
-            df_mes_abertura = df[(df['DTH_ABERTURA'].dt.year == ano) & (df['DTH_ABERTURA'].dt.month == mes)]
-            df_mes_termino = df[(df['DTH_TÉRMINO'].dt.year == ano) & (df['DTH_TÉRMINO'].dt.month == mes)]
+    st.button(
+        "Atualizar Dados", 
+        icon=":material/sync:", 
+        type="primary", 
+        use_container_width=True,
+        disabled= st.session_state.button_state, 
+        on_click=click_button
+        )
 
-            # Se não houver registros no mês, pule a iteração
-            if df_mes_abertura.empty and df_mes_termino.empty:
-                continue
+    if st.session_state.clicked:
+        geradb()
 
-            # Quantidade de OS abertas no mês
-            os_abertas_mes = df_mes_abertura.shape[0]
-
-            # OS não atendidas no mês (abertas no mês e não concluídas)
-            os_n_atendidas = df_mes_abertura[df_mes_abertura['STATUS'] != 'ATENDIDO'].shape[0]
-
-            # OS atendidas no mês (abertas e finalizadas no mesmo mês)
-            os_atendidas = df_mes_abertura[(df_mes_abertura['STATUS'] == 'ATENDIDO') &
-                                           (df_mes_abertura['DTH_TÉRMINO'].dt.year == ano) &
-                                           (df_mes_abertura['DTH_TÉRMINO'].dt.month == mes)].shape[0]
-
-            # OS do backlog atendidas no mês (abertas em meses anteriores e concluídas neste mês)
-            os_at_backlog = df_mes_termino[(df_mes_termino['STATUS'] == 'ATENDIDO') &
-                                           ((df_mes_termino['DTH_ABERTURA'].dt.year < ano) |
-                                            ((df_mes_termino['DTH_ABERTURA'].dt.year == ano) &
-                                             (df_mes_termino['DTH_ABERTURA'].dt.month < mes)))].shape[0]
-
-            # Calcular o Backlog (OS não atendidas com abertura anterior ao mês atual)
-            backlog = df[(df['STATUS'] != 'ATENDIDO') &
-                         ((df['DTH_ABERTURA'].dt.year < ano) |
-                          ((df['DTH_ABERTURA'].dt.year == ano) & (df['DTH_ABERTURA'].dt.month < mes)))].shape[0]
-
-            # Armazenar os resultados
-            totais_mensais.append({
-                'Referência': f"{ano}-{mes:02d}",  # Formato "YYYY-MM"                
-                'Backlogs': backlog,                
-                'OS Abertas': os_abertas_mes,
-                'OS Não Atendidas': os_n_atendidas,
-                'OS Atendidas': os_atendidas,
-                'Backlogs Atendidos': os_at_backlog,
-
-            })
-
-    return pd.DataFrame(totais_mensais)
-
-
-"""
-# Executa a função e exibe o DataFrame resultante
-df_core = load_excel("historico_oss_corretivas.xls")
-df_tecno = load_excel_cortecnicos("relatorio_historico_atendimento.xls")
-
-print(df_core)
-print(df_core.columns)
-print(df_tecno)
-print(df_tecno.columns)"
-"""
+if __name__ == "__page__":
+    atualdata()    

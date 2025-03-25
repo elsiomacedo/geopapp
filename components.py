@@ -20,14 +20,10 @@ def header_page():
     """
         Função para retornae o cabeçalho da página
     """    
-    logo_pag = get_image_base64("./imgs/casapark.png")
+    logo_pag = get_image_base64("./imgs/EMConsult.png")
     return f"""
-    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: -50px; margin-bottom: -5px;">
-        <img src="data:image/png;base64,{logo_pag}" 
-            style="width: 120px; height: auto;">
-        <div>
-            <h4 style="font-weight: bold; color: #4682B4; line-height: 1;">Gestão de Ordens de Serviços</h4>      
-        </div>
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: -60px; margin-bottom: -5px;">
+            <h3 style="font-weight: bold; color: #000080; line-height: 1;">Gestão de Operações</h3>      
     </div>
     <hr style="margin-top: -10px; margin-bottom: 10px; border: 1px solid #ccc;">
     """  
@@ -62,4 +58,6 @@ def sidebar_component():
     """
 
 
-    
+        #with st.sidebar:
+    #    with st.spinner("Loading..."):
+    #        time.sleep(5)

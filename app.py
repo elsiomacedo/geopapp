@@ -4,7 +4,7 @@ import streamlit as st
 APP_TITLE = 'Geopapp'
 APP_ICON = "imgs/roda.png"
 LOGO_PATH = "imgs/roda.png"
-SIDEBAR_INIT = "collapsed"    
+SIDEBAR_INIT = "expanded"    
 CORE_XLS = 'historico_oss_corretivas.xls'
 TECNO_XLS = 'relatorio_historico_atendimento.xls'
 
@@ -16,7 +16,7 @@ st.set_page_config(
 )
 
 from components import header_page, header_side, load_css
-from datasets.ds_core import exibir_corretivas, load_excel, normalize_corretivas, metricas_core, normalize_cortecnicos
+from datasets.ds_corretivas import exibir_corretivas, load_excel, normalize_corretivas, metricas_core, normalize_cortecnicos
 from streamlit_extras.metric_cards import style_metric_cards
 import matplotlib.pyplot as plt
 import numpy as np
@@ -25,7 +25,7 @@ def exibe_metricas(df):
     """Exibe as métricas calculadas a partir dos dados fornecidos."""
     metricas_df = metricas_core(df) 
  
-    print(metricas_df)
+    #print(metricas_df)
 
     referencia_atual = "2025-03"  # Exemplo de referência atual
     ano_atual = int(referencia_atual.split("-")[0])  # Extrai o ano
@@ -131,7 +131,8 @@ def render_tabs(df_corretivas, df_tecnicos):
                     be random.
                 ''')
         # Exibir os dados em uma tabela   
-        exibir_corretivas(df_corretivas)   
+        df_corretivas = exibir_corretivas(df_corretivas)   
+        st.dataframe(df_corretivas, height=400, hide_index=True)
     with abas[2]:    
         st.dataframe(df_tecnicos, height=400, hide_index=True)
 
@@ -140,7 +141,7 @@ def main():
     st.markdown(f'<style>{load_css()}</style>', unsafe_allow_html=True)
     st.markdown(header_page(), unsafe_allow_html=True)
     st.sidebar.markdown(header_side(), unsafe_allow_html=True)   
-
+    st.sidebar.success("Selecione :")
     df_corretivas = load_excel(CORE_XLS)        # Carrega arquivo Excel do OPTIMUS
     df_corretivas = normalize_corretivas(df_corretivas)    # Normaliza os dados do Dataframe
 
