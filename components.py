@@ -23,7 +23,7 @@ def header_page():
     logo_pag = get_image_base64("./imgs/EMConsult.png")
     return f"""
     <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: -60px; margin-bottom: -5px;">
-            <h3 style="font-weight: bold; color: #000080; line-height: 1;">Gestão de Operações</h3>      
+            <h3 style="font-weight: bold; line-height: 1;">Gestão de Operações</h3>      
     </div>
     <hr style="margin-top: -10px; margin-bottom: 10px; border: 1px solid #ccc;">
     """  
