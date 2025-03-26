@@ -59,6 +59,6 @@ def corretivas():
                 I rolled actual dice for these, so they're *guaranteed* to
                 be random.
             ''')    
-    st.dataframe(exibir_corretivas(), selection_mode="multi-row", use_container_width= True, hide_index=True)
+    st.dataframe(exibir_corretivas(), selection_mode="multi", use_container_width= True, hide_index=True)
 if __name__ == "__page__":
     corretivas()

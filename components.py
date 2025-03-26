@@ -31,7 +31,7 @@ def titulo_page(titulo, subtitulo):
         Função para retornae o cabeçalho da página
     """    
     return f"""
-    <div style=" margin-top: -60px; margin-bottom: 10px"">
+    <div style=" margin-top: -50px; margin-bottom: 10px"">
             <h3 style="margin-bottom: -10px; line-height: 1;">{titulo}</h3>      
             <p style="line-height: 1">{subtitulo}</p>               
     </div>
