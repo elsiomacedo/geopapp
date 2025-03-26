@@ -53,7 +53,7 @@ def exibir_corretivas():
 
 
 def corretivas(): 
-    st.markdown(titulo_page('Ordens de Serviço Corretivas', 'Criadas no mês, Abertas e Encerradas no Mês'), unsafe_allow_html=True)
+    st.markdown(titulo_page('OS Corretivas', 'Criadas no mês, Abertas e Encerradas no Mês'), unsafe_allow_html=True)
     with st.expander("Filtros"):
             st.write('''
                 The chart above shows some numbers I picked for you.
