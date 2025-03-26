@@ -4,10 +4,11 @@ from components import load_css, header_page, header_side
 
 APP_TITLE = 'Geopapp'
 APP_ICON = "imgs/roda.png"
-LOGO_PATH = "imgs/casapark@2x.png"
+#LOGO_PATH = "imgs/casapark@2x.png"
 LOGO_ICON = "imgs/icon-casa.png"
 SIDEBAR_INIT = 'expanded'
 is_dark = st._config.get_option("theme.base") == "dark"
+
 LOGO_PATH = "imgs/casapark-dark.png" if is_dark else "imgs/casapark-light.png"
 
 
