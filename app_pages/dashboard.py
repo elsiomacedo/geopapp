@@ -1,9 +1,7 @@
 import streamlit as st
-from components import load_css, header_page
+from components import titulo_page
 
 def dashboard(): 
-    st.title('Streamlit Page Navigation Tutorial')
-    st.write('Teste de navegação')
-
+    st.markdown(titulo_page('Dashboard', 'Análise por AI'), unsafe_allow_html=True)
 if __name__ == "__page__":
     dashboard()

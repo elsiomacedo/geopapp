@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from components import load_css, header_page
+from components import load_css, header_page, titulo_page
 #from datasets.ds_corretivas import exibir_corretivas
 
 def colorir_status(value):
@@ -48,14 +48,12 @@ def exibir_corretivas():
     return df_corretivas
 
 
-"""
-FUNÇÂO PRINCIPAL DO MÓDULO
-"""
+
+# FUNÇÂO PRINCIPAL DO MÓDULO
+
 
 def corretivas(): 
-
-    st.title('Ordens de Serviço Corretivas')
-    st.write('Criadas no mês, Abertas e Encerradas no Mês')
+    st.markdown(titulo_page('Ordens de Serviço Corretivas', 'Criadas no mês, Abertas e Encerradas no Mês'), unsafe_allow_html=True)
     with st.expander("Filtros"):
             st.write('''
                 The chart above shows some numbers I picked for you.

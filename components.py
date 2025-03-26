@@ -16,16 +16,26 @@ def load_css():
             return f.read()
     except FileNotFoundError:
         return "/* CSS file not found */"
-def header_page():
+def header_page(Texto):
     """
         Função para retornae o cabeçalho da página
     """    
-    logo_pag = get_image_base64("./imgs/EMConsult.png")
+    #logo_pag = get_image_base64("./imgs/EMConsult.png")
     return f"""
-    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: -60px; margin-bottom: -5px;">
-            <h3 style="font-weight: bold; line-height: 1;">Gestão de Operações</h3>      
+    <div style=" margin-top: -105px; margin-bottom: -5px;">
+            <h2 style="font-weight: bold; line-height: 1;">{Texto}</h2>      
     </div>
     <hr style="margin-top: -10px; margin-bottom: 10px; border: 1px solid #ccc;">
+    """  
+def titulo_page(titulo, subtitulo):
+    """
+        Função para retornae o cabeçalho da página
+    """    
+    return f"""
+    <div style=" margin-top: -60px; margin-bottom: 10px"">
+            <h3 style="margin-bottom: -10px; line-height: 1;">{titulo}</h3>      
+            <p style="line-height: 1">{subtitulo}</p>               
+    </div>
     """  
 def header_side():
     """

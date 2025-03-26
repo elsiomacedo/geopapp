@@ -1,5 +1,5 @@
 import streamlit as st
-from components import load_css, header_page
+from components import titulo_page
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
@@ -242,11 +242,10 @@ def geradb():
 
 def atualdata(): 
     """Display the data update page with last update information and update button."""
-    st.header('Atualiza dados do Sistema')
-
-       # Display last update date
+    # Display last update date
     last_update_date = last_access('DBCorretivas.csv')
-    st.success(f'Data do Último Arquivo de Atualização: {last_update_date}')
+    texto = 'Data do Último Arquivo de Atualização: ' + last_update_date
+    st.markdown(titulo_page('Atualiza dados do Sistema', texto), unsafe_allow_html=True)
 
     if 'clicked' not in st.session_state:
         st.session_state.clicked = False

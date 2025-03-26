@@ -1,6 +1,6 @@
 import streamlit as st
 import time
-from components import load_css, header_page, header_side
+from components import load_css, header_page
 from streamlit_javascript import st_javascript
 
 
@@ -30,7 +30,7 @@ def main():
         st.logo(LOGO_DARK, size="large", icon_image=LOGO_ICON)
 
     st.markdown(f'<style>{load_css()}</style>', unsafe_allow_html=True)
-    st.markdown(header_page(), unsafe_allow_html=True)
+    st.markdown(header_page('Gestão de Operações'), unsafe_allow_html=True)
     #st.sidebar.markdown(header_side(), unsafe_allow_html=True)  
 
     pages = {
