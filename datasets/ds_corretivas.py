@@ -21,15 +21,17 @@ def colorir_status(value):
              return f"color: {CORES_STATUS[value]}; font-weight: bold;"
     return ""
 
-def exibir_corretivas(df):
+def exibir_corretivas():
     """
     Exibe o Dataframe de OS corretivos.
         Args:
         df (pandas.DataFrame): DataFrame com os dados para exibição.
     """    
+    df = pd.read_csv('dados/DBCorretivas.csv', encoding='utf-8')    
+
     COLUNAS_EXIBICAO = [
         'Nº OS', 'STATUS', 'TIPO DE OS','NATUREZA',  
-        'SOLICITANTE', 'DESCRIÇÃO', 'TÉCNICO', 'TIPO TÉCNICO', 'DTH_ABERTURA', 'DTH_INICIO', 'DTH_TERMINO'
+        'SOLICITANTE', 'DESCRIÇÃO', 'TECNICO', 'TIPO TECNICO', 'DTH_ABERTURA', 'DTH_INICIO', 'DTH_TERMINO'
     ]
     MAPEAMENTO_COLUNAS = {
         'TIPO TÉCNICO' : 'EQUIPE',
@@ -109,14 +111,5 @@ def metricas_core(df):
 
     return pd.DataFrame(totais_mensais)
 
-
-"""
-# Executa a função e exibe o DataFrame resultante
-df_core = load_excel("historico_oss_corretivas.xls")
-df_tecno = load_excel_cortecnicos("relatorio_historico_atendimento.xls")
-
-print(df_core)
-print(df_core.columns)
-print(df_tecno)
-print(df_tecno.columns)"
-"""
+def carregardados():
+     return  pd.read_csv('dados/DBCorretivas.csv', encoding='utf-8')
