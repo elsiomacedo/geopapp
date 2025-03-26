@@ -4,7 +4,7 @@ from components import load_css, header_page, header_side
 
 APP_TITLE = 'Geopapp'
 APP_ICON = "imgs/roda.png"
-LOGO_PATH = "imgs/casapark.png"
+LOGO_PATH = "imgs/casapark@2x.png"
 LOGO_ICON = "imgs/icon-casa.png"
 SIDEBAR_INIT = 'expanded'
 
