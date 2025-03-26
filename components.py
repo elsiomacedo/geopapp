@@ -20,7 +20,6 @@ def header_page(Texto):
     """
         Função para retornae o cabeçalho da página
     """    
-    #logo_pag = get_image_base64("./imgs/EMConsult.png")
     return f"""
     <div style=" margin-top: -105px; margin-bottom: -5px;">
             <h2 style="font-weight: bold; line-height: 1;">{Texto}</h2>      

@@ -48,7 +48,6 @@ def exibir_corretivas():
     return df_corretivas
 
 
-
 # FUNÇÂO PRINCIPAL DO MÓDULO
 
 
@@ -60,6 +59,6 @@ def corretivas():
                 I rolled actual dice for these, so they're *guaranteed* to
                 be random.
             ''')    
-    st.dataframe(exibir_corretivas())
+    st.dataframe(exibir_corretivas(), selection_mode="multi-row", use_container_width= True, hide_index=True)
 if __name__ == "__page__":
     corretivas()
