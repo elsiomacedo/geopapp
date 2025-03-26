@@ -1,15 +1,17 @@
 import streamlit as st
 import time
 from components import load_css, header_page, header_side
+from streamlit_javascript import st_javascript
+
+
 
 APP_TITLE = 'Geopapp'
 APP_ICON = "imgs/roda.png"
-LOGO_ICON = "imgs/icon-casa.png"
 SIDEBAR_INIT = 'expanded'
 
-is_dark = st.get_option("theme.base") == "dark"
-print("Dark mode:", is_dark)
-LOGO_PATH = "imgs/casapark-dark.png" if is_dark else "imgs/casapark-light.png"
+LOGO_DARK = "imgs/casapark-dark.png"
+LOGO_LIGHT ="imgs/casapark-light.png"
+LOGO_ICON = "imgs/icon-casa.png"
 
 
 def main():
@@ -20,7 +22,12 @@ def main():
         initial_sidebar_state=SIDEBAR_INIT,
         layout="wide"
     )
-    st.logo(LOGO_PATH, size="large", icon_image=LOGO_ICON)
+    st_theme = st_javascript("""window.getComputedStyle(window.parent.document.getElementsByClassName("stApp")[0]).getPropertyValue("color-scheme")""")
+    #st.write(st_theme)
+    if st_theme =='light':
+        st.logo(LOGO_LIGHT, size="large", icon_image=LOGO_ICON)
+    else:
+        st.logo(LOGO_DARK, size="large", icon_image=LOGO_ICON)
 
     st.markdown(f'<style>{load_css()}</style>', unsafe_allow_html=True)
     st.markdown(header_page(), unsafe_allow_html=True)
