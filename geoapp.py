@@ -8,6 +8,7 @@ LOGO_ICON = "imgs/icon-casa.png"
 SIDEBAR_INIT = 'expanded'
 
 is_dark = st.get_option("theme.base") == "dark"
+print("Dark mode:", is_dark)
 LOGO_PATH = "imgs/casapark-dark.png" if is_dark else "imgs/casapark-light.png"
 
 
