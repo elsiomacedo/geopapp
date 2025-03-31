@@ -1,251 +1,221 @@
 import streamlit as st
-from components import titulo_page
 import pandas as pd
 from pathlib import Path
-from datetime import datetime
 from typing import Optional
+from datetime import datetime
 import time
+from components import titulo_page
 
 CORE_XLS = 'historico_oss_corretivas.xls'
 TECNO_XLS = 'relatorio_historico_atendimento.xls'
 
 def parse_time(time_str: str) -> Optional[datetime.time]:
-    """
-    Converte uma string de tempo no formato 'HH:MM:SS' ou 'HH:MM' para um objeto datetime.time.
-    Retorna None se a string estiver vazia, for nula ou inválida.
-
-    Parâmetros:
-        time_str (str): String contendo o tempo.
-
-    Retorna:
-        datetime.time ou None: Objeto de tempo ou None em caso de erro.
-    """
+    """Converte string de hora em datetime.time."""
     if not time_str or pd.isnull(time_str):
         return None
-    try:
-        return pd.to_datetime(time_str, format='%H:%M:%S').time()
-    except ValueError:
+    for fmt in ('%H:%M:%S', '%H:%M'):
         try:
-            return pd.to_datetime(time_str, format='%H:%M').time()
+            return pd.to_datetime(time_str, format=fmt).time()
         except ValueError:
-            return None
+            continue
+    return None
 
-def last_access(file_name):
-    # Caminho do arquivo
-    caminho_arquivo = Path('dados') / file_name     
-    # Data da última modificação
-    data_modificacao = time.strftime('%d/%m/%Y', time.localtime(caminho_arquivo.stat().st_mtime))
-    return data_modificacao   
+def last_access(file_name: str) -> str:
+    """Retorna a data da última modificação de um arquivo."""
+    caminho_arquivo = Path('dados') / file_name
+    return time.strftime('%d/%m/%Y', time.localtime(caminho_arquivo.stat().st_mtime))
+
+def combinar_data_hora(data_col, hora_col) -> pd.Series:
+    return pd.to_datetime(
+        data_col.dt.strftime('%d/%m/%Y') + ' ' +
+        hora_col.apply(lambda t: t.strftime('%H:%M:%S') if t else "00:00:00"),
+        format='%d/%m/%Y %H:%M:%S'
+    )
+
+def calcular_tempo(delta) -> Optional[str]:
+    if not isinstance(delta, pd.Timedelta) or pd.isnull(delta):
+        return None
+    total_seconds = delta.total_seconds()
+    horas = int(total_seconds // 3600)
+    minutos = int((total_seconds % 3600) // 60)
+    return f"{horas:03}:{minutos:02}"
 
 def load_excel(file_name: str) -> Optional[pd.DataFrame]:
-    """
-    Carrega e processa um arquivo Excel Exportado pelo OPTIMUS
-    Salva o Resultado em Aqruivo CSV
-       Parâmetros:
-        file_name (str): Nome do arquivo Excel.
-    Retorna:
-        pd.DataFrame ou None: DataFrame com os dados importados  ou None em caso de erro.
-    """
-    # Define o caminho do arquivo
+    """Lê planilha Excel exportada do OPTIMUS."""
     file_path = Path('dados') / file_name
-
     try:
-        # Ler o arquivo Excel com a linha 7 (índice 6) como cabeçalho
         xls = pd.ExcelFile(file_path)
         df = xls.parse(xls.sheet_names[0], header=6)
-        # Remover a última linha e reiniciar o índice
-        df = df.iloc[:-1].reset_index(drop=True)
-
+        return df.iloc[:-1].reset_index(drop=True)
     except Exception as e:
-        print(f"Erro ao processar o arquivo: {e}")
+        st.error(f"Erro ao processar o arquivo '{file_name}': {e}")
         return None
 
-    return df
+def normalizar_datas(df: pd.DataFrame, col_data: str, col_hora: str, col_destino: str):
+    df[col_data] = pd.to_datetime(df[col_data], format='%d/%m/%Y', errors='coerce')
+    df[col_hora] = df[col_hora].apply(parse_time)
+    df[col_destino] = combinar_data_hora(df[col_data], df[col_hora])
 
-def normalize_corretivas(df) -> Optional[pd.DataFrame]:
-    """
-    Carrega e processa um arquivo Excel de ordens de serviço corretivas.
-    Remove colunas desnecessárias, formata datas, calcula tempos (TMS, TMA, TEX) e salva o resultado em um arquivo CSV.
-    Parâmetros:
-        pd.DataFrame ou None: DataFrame a ser normalizado.
-    Retorna:
-        pd.DataFrame ou None: DataFrame com os dados processados ou None em caso de erro.
-    """
-    # Formata datas e horas de abertura
-    df['DATA DE ABERTURA'] = pd.to_datetime(df['DATA DE ABERTURA'], format='%d/%m/%Y')
-    df['HORA DE ABERTURA'] = df['HORA DE ABERTURA'].apply(parse_time)
-    df['DTH_ABERTURA'] = pd.to_datetime(
-        df['DATA DE ABERTURA'].dt.strftime('%d/%m/%Y') + ' ' +
-        df['HORA DE ABERTURA'].apply(lambda t: t.strftime('%H:%M:%S') if t else "00:00:00"),
-        format='%d/%m/%Y %H:%M:%S'
-    )
+def normalize_corretivas(df: pd.DataFrame) -> Optional[pd.DataFrame]:
+    """Normaliza e processa dados de OS corretivas."""
+    normalizar_datas(df, 'DATA DE ABERTURA', 'HORA DE ABERTURA', 'DTH_ABERTURA')
+    normalizar_datas(df, 'DATA DE INÍCIO', 'HORA DE INÍCIO', 'DTH_INICIO')
 
-    # Formata datas e horas de início
-    df['DATA DE INÍCIO'] = pd.to_datetime(df['DATA DE INÍCIO'], format='%d/%m/%Y')
-    df['HORA DE INÍCIO'] = df['HORA DE INÍCIO'].apply(parse_time)
-    df['DTH_INICIO'] = pd.to_datetime(
-        df['DATA DE INÍCIO'].dt.strftime('%d/%m/%Y') + ' ' +
-        df['HORA DE INÍCIO'].apply(lambda t: t.strftime('%H:%M:%S') if t else "00:00:00"),
-        format='%d/%m/%Y %H:%M:%S'
-    )
-
-    # Formata datas e horas de término, se existirem
     if 'DATA DE TÉRMINO' in df.columns and 'HORA DE TÉRMINO' in df.columns:
-        df['DATA DE TÉRMINO'] = pd.to_datetime(df['DATA DE TÉRMINO'], format='%d/%m/%Y', errors='coerce')
-        df['HORA DE TÉRMINO'] = df['HORA DE TÉRMINO'].apply(parse_time)
-        df['DTH_TERMINO'] = pd.to_datetime(
-            df['DATA DE TÉRMINO'].dt.strftime('%d/%m/%Y') + ' ' +
-            df['HORA DE TÉRMINO'].apply(lambda t: t.strftime('%H:%M:%S') if t else "00:00:00"),
-            format='%d/%m/%Y %H:%M:%S'
-        )
+        normalizar_datas(df, 'DATA DE TÉRMINO', 'HORA DE TÉRMINO', 'DTH_TERMINO')
     else:
         df['DTH_TERMINO'] = pd.NaT
 
-    # Converte a coluna 'PRIORIDADE' para inteiro
     df['PRIORIDADE'] = pd.to_numeric(df['PRIORIDADE'], errors='coerce').fillna(0).astype(int)
 
-    # Remove colunas desnecessárias
-    columns_to_drop = [
+    df.drop(columns=[
         "CLIENTE", "TIPO DE NEGÓCIO", "LOCAL", "TELEFONE", "E-MAIL", "FAMÍLIA",
         "DATA MÁXIMA ATENDIMENTO", "HORA MÁXIMA ATENDIMENTO", "DATA DE FECHAMENTO",
         "HORA DE FECHAMENTO", "TEMPO DE SERVIÇO", "NOME TÉCNICO (ASSINATURA)", "CONTRATO",
         "PRESTADOR", "EMPRESA", "NO PRAZO", "AVALIAÇÃO", "MOTIVO PENDÊNCIA", "NOTA PESQUISA",
         "COMENTÁRIO PESQUISA", "QTD REABERTURA", "VALOR DE MATERIAL", "VALOR DE DESPESAS",
-        "VALOR DE SERVIÇO", "VALOR TOTAL", "COMENTÁRIOS DA OS", "DATA DE ABERTURA",
-        "HORA DE ABERTURA", "DATA DE INÍCIO", "HORA DE INÍCIO", "DATA DE TÉRMINO", "HORA DE TÉRMINO"
-    ]
-    df.drop(columns=columns_to_drop, errors='ignore', inplace=True)
+        "VALOR DE SERVIÇO", "VALOR TOTAL", "COMENTÁRIOS DA OS",
+        "DATA DE ABERTURA", "HORA DE ABERTURA", "DATA DE INÍCIO", "HORA DE INÍCIO",
+        "DATA DE TÉRMINO", "HORA DE TÉRMINO"
+    ], errors='ignore', inplace=True)
 
-    # Calcula os tempos TMS, TMA e TEX para OS com STATUS ATENDIDO
     if 'STATUS' in df.columns:
-        df['TS'] = None
-        df['TA'] = None
-        df['TE'] = None
-
-        df_atendido = df[df['STATUS'] == 'ATENDIDO']
-        df_atendido.loc[:, 'TS'] = (df_atendido['DTH_TERMINO'] - df_atendido['DTH_ABERTURA']).apply(lambda x: f"{int(x.total_seconds() // 3600):03}:{int((x.total_seconds() % 3600) // 60):02}" if pd.notnull(x) else None)
-        df_atendido.loc[:, 'TA'] = (df_atendido['DTH_INICIO'] - df_atendido['DTH_ABERTURA']).apply(lambda x: f"{int(x.total_seconds() // 3600):03}:{int((x.total_seconds() % 3600) // 60):02}" if pd.notnull(x) else None)
-        df_atendido.loc[:, 'TE'] = (df_atendido['DTH_TERMINO'] - df_atendido['DTH_INICIO']).apply(lambda x: f"{int(x.total_seconds() // 3600):03}:{int((x.total_seconds() % 3600) // 60):02}" if pd.notnull(x) else None)
-        # Filtra apenas as OS com STATUS ATENDIDO
-
-        # Atualiza o DataFrame original com os tempos calculados
-        df.update(df_atendido)
-        # Salva o DataFrame processado em um arquivo CSV        
-        #output_file_name = f'core_dados.csv'
-        #df.to_csv(f'dados/{output_file_name}', index=False, encoding='utf-8')
+        df['TS'] = df['TA'] = df['TE'] = None
+        atendido = df['STATUS'] == 'ATENDIDO'
+        df.loc[atendido, 'TS'] = (df.loc[atendido, 'DTH_TERMINO'] - df.loc[atendido, 'DTH_ABERTURA']).apply(calcular_tempo)
+        df.loc[atendido, 'TA'] = (df.loc[atendido, 'DTH_INICIO'] - df.loc[atendido, 'DTH_ABERTURA']).apply(calcular_tempo)
+        df.loc[atendido, 'TE'] = (df.loc[atendido, 'DTH_TERMINO'] - df.loc[atendido, 'DTH_INICIO']).apply(calcular_tempo)
 
     return df
 
-def normalize_cortecnicos(df) -> Optional[pd.DataFrame]:
-    """
-    Carrega e processa um arquivo Excel dos técnico e apropriação de horas
-    Remove colunas desnecessárias, formata datas, calcula tempos (TMS, TMA, TEX) e salva o resultado em um arquivo CSV.
-    Parâmetros:
-        pd.DataFrame ou None: DataFrame a ser normalizado.
-    Retorna:
-        pd.DataFrame ou None: DataFrame com os dados processados ou None em caso de erro.
-    """
-    # Formata datas e horas de início
-    df['DATA INICIO'] = pd.to_datetime(df['DATA INICIO'], format='%d/%m/%Y')
-    df['HORA INICIO'] = df['HORA INICIO'].apply(parse_time)
-    df['INICIO'] = pd.to_datetime(
-        df['DATA INICIO'].dt.strftime('%d/%m/%Y') + ' ' +
-        df['HORA INICIO'].apply(lambda t: t.strftime('%H:%M:%S') if t else "00:00:00"),
-        format='%d/%m/%Y %H:%M:%S'
-    )
+def normalize_cortecnicos(df: pd.DataFrame) -> Optional[pd.DataFrame]:
+    """Normaliza dados de técnicos e calcula tempo de execução."""
+    normalizar_datas(df, 'DATA INICIO', 'HORA INICIO', 'INICIO')
 
-    # Formata datas e horas de término, se existirem
     if 'DATA TERMINO' in df.columns and 'HORA TERMINO' in df.columns:
-        df['DATA TERMINO'] = pd.to_datetime(df['DATA TERMINO'], format='%d/%m/%Y', errors='coerce')
-        df['HORA TERMINO'] = df['HORA TERMINO'].apply(parse_time)
-        df['TERMINO'] = pd.to_datetime(
-            df['DATA TERMINO'].dt.strftime('%d/%m/%Y') + ' ' +
-            df['HORA TERMINO'].apply(lambda t: t.strftime('%H:%M:%S') if t else "00:00:00"),
-            format='%d/%m/%Y %H:%M:%S'
-        )
+        normalizar_datas(df, 'DATA TERMINO', 'HORA TERMINO', 'TERMINO')
     else:
         df['TERMINO'] = pd.NaT
 
-    
-    # Converte a coluna 'ID' para inteiro e depois para string
-    df['Nº OS'] = pd.to_numeric(df['ID'], errors='coerce').fillna(0).astype(int).astype(str)    
-    # Calcula o tempo de execução
-    df['TEMPO EXECUCAO'] = (df['TERMINO'] - df['INICIO']).apply(lambda x: f"{int(x.total_seconds() // 3600):02}:{int((x.total_seconds() % 3600) // 60):02}" if pd.notnull(x) else None)
-
+    df['Nº OS'] = pd.to_numeric(df['ID'], errors='coerce').fillna(0).astype(int).astype(str)
+    df['TEMPO EXECUCAO'] = (df['TERMINO'] - df['INICIO']).apply(calcular_tempo)
     df.columns = df.columns.str.strip()
+    df = df[df['TIPO'] == 'OS Corretiva']
 
-    # Filtrar tecno_dados para incluir apenas OS CORRETIVA
-    df_corretiva = df[df['TIPO'] == 'OS Corretiva']
+    drop_cols = ["IS", "TIPO DE NEGÓCIO", "LOCAL", "DATA INICIO", "HORA INICIO", "DATA TERMINO", "HORA TERMINO"]
+    df.drop(columns=drop_cols, errors='ignore', inplace=True)
 
-    columns_to_drop = ["IS", 'TIPO',  "TIPO DE NEGÓCIO", "LOCAL", "DATA INICIO", "HORA INICIO", "DATA TERMINO", "HORA TERMINO"]
+    return df[[
+        'Nº OS', 'TIPO', 'TECNICO', 'TIPO TECNICO', 'INICIO', 'TERMINO', 'TEMPO EXECUCAO'
+    ]].copy()
 
-    df_corretiva = df_corretiva.drop(columns=columns_to_drop, errors='ignore')    
-
-    COLUNAS_EXIBICAO = [
-        'Nº OS', 'TECNICO', 'TIPO TECNICO', 'INICIO', 'TERMINO', 'TEMPO EXECUCAO'
+def agrupa_db(corretivas: pd.DataFrame, cortecnicos: pd.DataFrame) -> pd.DataFrame:
+    core_cols = [
+        'Nº OS', 'ANDAR', 'ÁREA', 'SOLICITANTE', 'DESCRIÇÃO', 'STATUS', 'NATUREZA',
+        'TIPO DE OS', 'PROBLEMA', 'TIPO DE EQUIPAMENTO', 'TAG EQUIPAMENTO',
+        'SERVIÇO EXECUTADO', 'OBSERVAÇÃO', 'PRIORIDADE', 'DTH_ABERTURA', 'DTH_INICIO',
+        'DTH_TERMINO', 'TS', 'TA', 'TE'
     ]
-
-    df_corretiva = df_corretiva[COLUNAS_EXIBICAO].copy()   
-
-    # Salva o DataFrame processado em um arquivo CSV  
-    #output_file_name = f'tecno_dados.csv'
-    #df_corretiva.to_csv(f'dados/{output_file_name}', index=False, encoding='utf-8')
-    
-    return df
-
-def Criadb(corretivas,  cortecnicos):
-
-    # Selecionar colunas específicas de cada DataFrame
-    core_cols = ['Nº OS', 'ANDAR', 'ÁREA', 'SOLICITANTE', 'DESCRIÇÃO', 'STATUS',
-                    'NATUREZA', 'TIPO DE OS', 'PROBLEMA', 'TIPO DE EQUIPAMENTO',
-                    'TAG EQUIPAMENTO', 'SERVIÇO EXECUTADO', 'OBSERVAÇÃO', 'PRIORIDADE', 
-                    'DTH_ABERTURA', 'DTH_INICIO', 'DTH_TERMINO', 'TS', 'TA', 'TE'    
-                ]
     tecno_cols = ['Nº OS', 'TECNICO', 'TIPO TECNICO', 'INICIO', 'TERMINO', 'TEMPO EXECUCAO']
+    return pd.merge(corretivas[core_cols], cortecnicos[tecno_cols], on='Nº OS', how='left')
 
-    # Realizar o merge
-    merged_df = pd.merge(
-        corretivas[core_cols],
-        cortecnicos[tecno_cols],
-        on='Nº OS',
-        how='left'
-    )
-    # Exibir o resultado
+def gravacsv(df: pd.DataFrame, output_file_name: str):
+    df.to_csv(f'dados/{output_file_name}', index=False, encoding='utf-8')
 
-    return(merged_df)    
+def gerar_bases():
+    """Executa o pipeline completo de leitura, normalização e exportação de dados."""
+    my_bar = st.progress(0, "Carregando, analisando e atualizando os dados. Aguarde...")
 
-def gravacsv(arq_file):
-    # Salva o DataFrame processado em um arquivo CSV  
-    output_file_name = f'DBCorretivas.csv'
-    arq_file.to_csv(f'dados/{output_file_name}', index=False, encoding='utf-8')
+    my_bar.progress(10, "Carregando OS Corretivas...")
+    corretivas = normalize_corretivas(load_excel(CORE_XLS))
 
-def geradb():
-    """Carrega, normaliza e atualiza os dados dos arquivos Excel."""
-    my_bar = st.progress(0, "Carregando, Analisando e Atualizando os dados. Aguarde...")
+    my_bar.progress(30, "Carregando dados dos técnicos...")
+    tecnicos = normalize_cortecnicos(load_excel(TECNO_XLS))
 
-    core_data = load_excel(CORE_XLS)
-    my_bar.progress(15, "Carregando OS Corretivas ............")
-    df_coretivas = normalize_corretivas(core_data)    
-    my_bar.progress(25, "Normalizando OS Corretivas ..........")   
-    tecno_data = load_excel(TECNO_XLS)     
-    my_bar.progress(40, "Carregando Dados dos Técnicos .......")   
-    df_cortecnicos = normalize_cortecnicos(tecno_data)         
-    my_bar.progress(60, "Normalizando Dados dos Técnicos .....")    
-    my_bar.progress(75, "Construindo database ................")    
-    dbarq = Criadb(df_coretivas, df_cortecnicos)    
-    my_bar.progress(90, "Salvando Banco de Dados .............")    
-    gravacsv(dbarq)
-    my_bar.progress(100, text="Processamento Concluído")
+    my_bar.progress(50, "Agrupando base completa...")
+    base_completa = agrupa_db(corretivas, tecnicos)
+
+    my_bar.progress(65, "Gerando base de exibição...")
+    base_resumo = gerar_base_resumo(base_completa)
+
+    my_bar.progress(80, "Gerando base por técnico...")
+    base_tecnicos = gerar_base_tecnicos(base_completa)
+
+    my_bar.progress(90, "Salvando arquivos CSV...")
+    gravacsv(base_resumo, 'DBCorretivas.csv')
+    gravacsv(base_tecnicos, 'DBTecno.csv')
+
+    my_bar.progress(100, "Processamento concluído.")
     st.success("Dados atualizados com sucesso!")
-    
-    return df_coretivas,  df_cortecnicos
 
-def atualdata(): 
-    """Display the data update page with last update information and update button."""
-    # Display last update date
-    last_update_date = last_access('DBCorretivas.csv')
-    texto = 'Data do Último Arquivo de Atualização: ' + last_update_date
-    st.markdown(titulo_page('Atualiza dados do Sistema', texto), unsafe_allow_html=True)
+def gerar_base_resumo(df: pd.DataFrame) -> pd.DataFrame:
+    """Gera DataFrame de OS com agrupamento e resumo por mês."""
+    hoje = datetime.now()
+    df['DTH_ABERTURA'] = pd.to_datetime(df['DTH_ABERTURA'], errors='coerce')
+    df['DTH_TERMINO'] = pd.to_datetime(df['DTH_TERMINO'], errors='coerce')
+
+    filtro = (
+        (df['DTH_ABERTURA'].dt.month == hoje.month) & (df['DTH_ABERTURA'].dt.year == hoje.year)
+        | (df['DTH_TERMINO'].dt.month == hoje.month) & (df['DTH_TERMINO'].dt.year == hoje.year)
+        | ((df['STATUS'] != 'ATENDIDO') & (df['STATUS'] != 'CANCELADO'))
+    )
+
+    df_filtrado = df[filtro]
+    agrupado = df_filtrado.groupby('Nº OS').agg({
+        'STATUS': 'first',
+        'TIPO DE OS': 'first',
+        'NATUREZA': 'first',
+        'SOLICITANTE': 'first',
+        'DESCRIÇÃO': 'first',
+        'TECNICO': lambda x: ', '.join(str(t) for t in x.dropna().unique()),
+        'TIPO TECNICO': 'first',
+        'DTH_ABERTURA': 'first',
+        'DTH_INICIO': 'first',
+        'DTH_TERMINO': 'first',
+        'TA': 'first',
+        'TS': 'first',
+        'TE': 'first'
+    }).reset_index()
+
+    agrupado['QTD_TECNICOS'] = df_filtrado.groupby('Nº OS')['TECNICO'].nunique().values
+    agrupado.rename(columns={
+        'TIPO TECNICO': 'EQUIPE',
+        'DTH_ABERTURA': 'Data/Hora Abertura',
+        'DTH_INICIO': 'Data/Hora Início',
+        'DTH_TERMINO': 'Data/Hora Término',
+        'TA': 'Atendimento',
+        'TS': 'Solução',
+        'TE': 'Execução'
+    }, inplace=True)
+
+    colunas = [
+        'Nº OS', 'STATUS', 'TIPO DE OS', 'NATUREZA', 'SOLICITANTE', 'DESCRIÇÃO',
+        'QTD_TECNICOS', 'TECNICO', 'EQUIPE', 'Data/Hora Abertura', 'Data/Hora Início',
+        'Data/Hora Término', 'Atendimento', 'Solução', 'Execução'
+    ]
+    return agrupado.reindex(columns=colunas)
+
+def gerar_base_tecnicos(df: pd.DataFrame) -> pd.DataFrame:
+    """Gera base agrupada por técnico com OS atendidas."""
+    df_filtrado = df[df['STATUS'] == 'ATENDIDO']
+    df_filtrado = df_filtrado.rename(columns={
+        'TIPO TECNICO': 'EQUIPE',
+        'DTH_ABERTURA': 'Data/Hora Abertura',
+        'TA': 'Atendimento',
+        'TS': 'Solução',
+        'TE': 'Execução'
+    })
+    colunas = [
+        'TECNICO', 'EQUIPE', 'Nº OS', 'TIPO DE OS', 'NATUREZA', 'SOLICITANTE', 'DESCRIÇÃO',
+        'Data/Hora Abertura', 'INICIO', 'TERMINO', 'Atendimento', 'Solução', 'Execução', 'TEMPO EXECUCAO'
+    ]
+    return df_filtrado.reindex(columns=colunas).sort_values(by='TECNICO')
+
+def atualdata():
+    """Interface do botão de atualização com data da última execução."""
+    st.markdown(titulo_page('Atualiza dados do Sistema',
+                            f'Data do Último Arquivo de Atualização: {last_access("DBCorretivas.csv")}'),
+                unsafe_allow_html=True)
 
     if 'clicked' not in st.session_state:
         st.session_state.clicked = False
@@ -253,20 +223,15 @@ def atualdata():
         st.session_state.button_state = False
 
     def click_button():
-        st.session_state.button_state = True        
+        st.session_state.button_state = True
         st.session_state.clicked = True
 
-    st.button(
-        "Atualizar Dados", 
-        icon=":material/sync:", 
-        type="primary", 
-        use_container_width=True,
-        disabled= st.session_state.button_state, 
-        on_click=click_button
-        )
+    st.button("Atualizar Dados", icon=":material/sync:", type="primary",
+              use_container_width=True, disabled=st.session_state.button_state,
+              on_click=click_button)
 
     if st.session_state.clicked:
-        geradb()
+        gerar_bases()
 
 if __name__ == "__page__":
-    atualdata()    
+    atualdata()

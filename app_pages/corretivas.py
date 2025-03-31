@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
-from components import load_css, header_page, titulo_page
-#from datasets.ds_corretivas import exibir_corretivas
+from components import titulo_page
+from datetime import datetime
+
 
 def colorir_status(value):
     """
@@ -28,24 +29,16 @@ def exibir_corretivas():
     df = pd.read_csv('dados/DBCorretivas.csv', encoding='utf-8')    
 
     COLUNAS_EXIBICAO = [
-        'Nº OS', 'STATUS', 'TIPO DE OS','NATUREZA',  
-        'SOLICITANTE', 'DESCRIÇÃO', 'TECNICO', 'TIPO TECNICO', 'DTH_ABERTURA', 'DTH_INICIO', 'DTH_TERMINO'
+        'Nº OS', 'STATUS', 'TIPO DE OS','NATUREZA', 'SOLICITANTE', 'DESCRIÇÃO', 
+        'QTD_TECNICOS', 'TECNICO', 'EQUIPE',  'Data/Hora Abertura', 'Data/Hora Início',
+       'Data/Hora Término', 'Atendimento', 'Solução', 'Execução'
     ]
-    MAPEAMENTO_COLUNAS = {
-        'TIPO TECNICO' : 'EQUIPE',
-        'DTH_ABERTURA' : 'Data/Hora Abertura',
-        'DTH_INICIO': 'Data/Hora Início',
-        'DTH_TÉRMINO': 'Data/Hora Término'
-    }
-    df_corretivas = df[COLUNAS_EXIBICAO].copy()
 
-    # Renomear colunas
-    df_corretivas = df_corretivas.rename(columns=MAPEAMENTO_COLUNAS)
-    # Coloca cor na coluna Status
-    df_corretivas = df_corretivas.style.map(colorir_status, subset=["STATUS"])  
-    # Converta o DataFrame para HTML
+    df = df.reindex(columns=COLUNAS_EXIBICAO)
+     # Coloca cor na coluna Status
+    df = df.style.map(colorir_status, subset=["STATUS"])  
       
-    return df_corretivas
+    return df
 
 
 # FUNÇÂO PRINCIPAL DO MÓDULO

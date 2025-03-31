@@ -5,50 +5,6 @@ from datetime import datetime
 from typing import Optional
 import time
 
-def colorir_status(value):
-    """
-    Função para aplicar cores na coluna STATUS.
-        Args:
-        value: Valor da célula. 
-    Returns:
-        str: String CSS para estilizar a célula.
-    """
-    CORES_STATUS = {
-        "ATENDIDO": "green",
-        "ABERTO": "red"
-    }       
-    if isinstance(value, str) and value in CORES_STATUS:
-             return f"color: {CORES_STATUS[value]}; font-weight: bold;"
-    return ""
-
-def exibir_corretivas():
-    """
-    Exibe o Dataframe de OS corretivos.
-        Args:
-        df (pandas.DataFrame): DataFrame com os dados para exibição.
-    """    
-    df = pd.read_csv('dados/DBCorretivas.csv', encoding='utf-8')    
-
-    COLUNAS_EXIBICAO = [
-        'Nº OS', 'STATUS', 'TIPO DE OS','NATUREZA',  
-        'SOLICITANTE', 'DESCRIÇÃO', 'TECNICO', 'TIPO TECNICO', 'DTH_ABERTURA', 'DTH_INICIO', 'DTH_TERMINO'
-    ]
-    MAPEAMENTO_COLUNAS = {
-        'TIPO TÉCNICO' : 'EQUIPE',
-        'DTH_ABERTURA' : 'Data/Hora Abertura',
-        'DTH_INICIO': 'Data/Hora Início',
-        'DTH_TÉRMINO': 'Data/Hora Término'
-    }
-    df_corretivas = df[COLUNAS_EXIBICAO].copy()
-
-    # Renomear colunas
-    df_corretivas = df_corretivas.rename(columns=MAPEAMENTO_COLUNAS)
-    # Coloca cor na coluna Status
-    df_corretivas = df_corretivas.style.map(colorir_status, subset=["STATUS"])  
-    # Converta o DataFrame para HTML
-      
-    return df_corretivas
-
 def metricas_core(df):
     """
     Calcula os totais mensais de OS abertas, não atendidas, atendidas, backlogs atendidos e backlog acumulado.
