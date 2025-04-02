@@ -16,17 +16,17 @@ def metricas_core(df):
     totais_mensais = []
 
     # Garantir que as colunas de data estão no formato datetime
-    df['DTH_ABERTURA'] = pd.to_datetime(df['DTH_ABERTURA'])
-    df['DTH_TERMINO'] = pd.to_datetime(df['DTH_TERMINO'])
+    df['Data/Hora Abertura'] = pd.to_datetime(df['Data/Hora Abertura'])
+    df['Data/Hora Término'] = pd.to_datetime(df['Data/Hora Abertura'])
 
     # Ordenar DataFrame por data de abertura (garante a correta acumulação do backlog)
-    df = df.sort_values('DTH_ABERTURA')
+    df = df.sort_values('Data/Hora Abertura')
 
-    for ano in df['DTH_ABERTURA'].dt.year.unique():
+    for ano in df['Data/Hora Abertura'].dt.year.unique():
         for mes in range(1, 13):
             # Filtros para o mês atual
-            df_mes_abertura = df[(df['DTH_ABERTURA'].dt.year == ano) & (df['DTH_ABERTURA'].dt.month == mes)]
-            df_mes_termino = df[(df['DTH_TÉRMINO'].dt.year == ano) & (df['DTH_TÉRMINO'].dt.month == mes)]
+            df_mes_abertura = df[(df['Data/Hora Abertura'].dt.year == ano) & (df['Data/Hora Abertura'].dt.month == mes)]
+            df_mes_termino = df[(df['Data/Hora Abertura'].dt.year == ano) & (df['Data/Hora Abertura'].dt.month == mes)]
 
             # Se não houver registros no mês, pule a iteração
             if df_mes_abertura.empty and df_mes_termino.empty:
@@ -40,19 +40,19 @@ def metricas_core(df):
 
             # OS atendidas no mês (abertas e finalizadas no mesmo mês)
             os_atendidas = df_mes_abertura[(df_mes_abertura['STATUS'] == 'ATENDIDO') &
-                                           (df_mes_abertura['DTH_TÉRMINO'].dt.year == ano) &
-                                           (df_mes_abertura['DTH_TÉRMINO'].dt.month == mes)].shape[0]
+                                           (df_mes_abertura['Data/Hora Abertura'].dt.year == ano) &
+                                           (df_mes_abertura['Data/Hora Abertura'].dt.month == mes)].shape[0]
 
             # OS do backlog atendidas no mês (abertas em meses anteriores e concluídas neste mês)
             os_at_backlog = df_mes_termino[(df_mes_termino['STATUS'] == 'ATENDIDO') &
-                                           ((df_mes_termino['DTH_ABERTURA'].dt.year < ano) |
-                                            ((df_mes_termino['DTH_ABERTURA'].dt.year == ano) &
-                                             (df_mes_termino['DTH_ABERTURA'].dt.month < mes)))].shape[0]
+                                           ((df_mes_termino['Data/Hora Abertura'].dt.year < ano) |
+                                            ((df_mes_termino['Data/Hora Abertura'].dt.year == ano) &
+                                             (df_mes_termino['Data/Hora Abertura'].dt.month < mes)))].shape[0]
 
             # Calcular o Backlog (OS não atendidas com abertura anterior ao mês atual)
             backlog = df[(df['STATUS'] != 'ATENDIDO') &
-                         ((df['DTH_ABERTURA'].dt.year < ano) |
-                          ((df['DTH_ABERTURA'].dt.year == ano) & (df['DTH_ABERTURA'].dt.month < mes)))].shape[0]
+                         ((df['Data/Hora Abertura'].dt.year < ano) |
+                          ((df['Data/Hora Abertura'].dt.year == ano) & (df['Data/Hora Abertura'].dt.month < mes)))].shape[0]
 
             # Armazenar os resultados
             totais_mensais.append({
@@ -64,8 +64,7 @@ def metricas_core(df):
                 'Backlogs Atendidos': os_at_backlog,
 
             })
-
+    print(pd.DataFrame(totais_mensais))
     return pd.DataFrame(totais_mensais)
 
-def carregardados():
-     return  pd.read_csv('dados/DBCorretivas.csv', encoding='utf-8')
+metricas_core( pd.read_csv('dados/DBCorretivas.csv', encoding='utf-8'))

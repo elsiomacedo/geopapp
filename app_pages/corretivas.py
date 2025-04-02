@@ -43,15 +43,14 @@ def exibir_corretivas():
 
 # FUNÇÂO PRINCIPAL DO MÓDULO
 
-
 def corretivas(): 
     st.markdown(titulo_page('OS Corretivas', 'Criadas no mês, Abertas e Encerradas no Mês'), unsafe_allow_html=True)
-    with st.expander("Filtros"):
-            st.write('''
-                The chart above shows some numbers I picked for you.
-                I rolled actual dice for these, so they're *guaranteed* to
-                be random.
-            ''')    
+    with st.sidebar.expander("Filtros"):
+        st.write('''
+            The chart above shows some numbers I picked for you.
+            I rolled actual dice for these, so they're *guaranteed* to
+            be random.
+        ''')         
     st.dataframe(exibir_corretivas(), selection_mode="multi", use_container_width= True, hide_index=True)
 if __name__ == "__page__":
     corretivas()

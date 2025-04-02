@@ -1,0 +1,11 @@
+Definição de alguns indicadores: (Considere periodos mensais)
+OS Abertas, são Ordens de Serviços que foram regstradas (abertas) em determinado periodo
+OS não Atendidas são Ordens de Serviço que ainda não foram exeutadas
+OS Atqndidas são Ordens de Serviço que já foram concluidas (Data de Termino não estão vazias
+BACKLOG Atendidas, são ordens de serviços que foram executadas no periodo mas que foram abertas antes do periodo atual
+BACKLOG são OS não atendidas que foram abertas antes do periodo atual
+
+TME Tempo médio  de execução da Ordem de serviço, onde Tempo de Execução de OS  é a diferença da data/hora de Termino pel data/hora de inicio
+TMA Tempo médio de atendimento onde o TA tempo de atendimento é a diferença entre a data/hora de inicio pela data/hora de abertua da OS
+TMS Tempo médio de solução onde TS é a diferença entra data/hora de termino pela data/hora de abertura de OS
+
