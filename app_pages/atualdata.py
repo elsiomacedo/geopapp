@@ -196,17 +196,15 @@ def gerar_bases():
     my_bar.progress(65, "Gerando base de exibição...")
     db_corretivas = agrupa_db(base_completa)
 
-    my_bar.progress(70, "Gerando Métricas COrretivas.")
-    metricascorretivas()
-
-    my_bar.progress(80, "Gerando base por técnico...")
+    my_bar.progress(75, "Gerando base por técnico...")
     db_tecnicos = gerar_base_tecnicos(base_completa)
 
-    my_bar.progress(90, "Salvando arquivos CSV...")
+    my_bar.progress(85, "Salvando arquivos CSV...")
     gravacsv(db_corretivas, 'DBCorretivas.csv')    
     #gravacsv(base_mes, 'DBCor_Mes.csv')
     #gravacsv(tecnicos, 'DBTecno_All.csv')
     
+    my_bar.progress(90, "Salvando arquivos CSV...")    
     gravacsv(tecnicos, 'DBTecno_All.csv')
 
     my_bar.progress(100, "Processamento concluído.")

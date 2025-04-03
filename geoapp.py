@@ -20,6 +20,16 @@ def configurar_pagina():
         initial_sidebar_state=SIDEBAR_INIT,
         layout="wide"
     )
+    st.markdown(
+        """
+        <style>
+        [data-testid="stSidebar"] {
+            width: 250px !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
     tema= detectar_tema()
 

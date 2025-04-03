@@ -21,7 +21,7 @@ def header_page(Texto):
         Função para retornae o cabeçalho da página
     """    
     return f"""
-    <div style=" margin-top: -105px; margin-bottom: -5px;">
+    <div style=" margin-top: -140px; margin-bottom: -5px;">
             <h2 style="font-weight: bold; line-height: 1;">{Texto}</h2>      
     </div>
     <hr style="margin-top: -10px; margin-bottom: 10px; border: 1px solid #ccc;">

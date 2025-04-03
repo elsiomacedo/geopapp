@@ -1,8 +1,7 @@
-def gerar_metricas_corretivas(csv_path):
-    import pandas as pd
+import pandas as pd
+#from datetime import datetime
 
-    # Carregar o CSV
-    df = pd.read_csv(csv_path)
+def metricascorretivas(df):
 
     # Conversão de datas
     df["Data/Hora Abertura"] = pd.to_datetime(df["Data/Hora Abertura"], errors='coerce')
@@ -67,29 +66,3 @@ def gerar_metricas_corretivas(csv_path):
     df_resultados["Índice de Reação (TMA/TME)"] = (df_resultados["TMA (h)"] / df_resultados["TME (h)"]).round(1)
 
     return df_resultados
-
-def metricascorretivas():
-    """
-    Função principal para gerar as métricas corretivas.
-        Args:
-        None
-    Returns:
-        None
-    """
-    import pandas as pd
-    from datetime import datetime
-
-    # Definir o caminho do arquivo CSV
-    csv_path = "dados/DBCorretivas.csv"
-
-    # Gerar as métricas corretivas
-    df = gerar_metricas_corretivas(csv_path)
-
-    # Exibir o DataFrame resultante
-    # Aplicar a função ao arquivo enviado
-    csv_path = "dados/DBCorretivas.csv"
-    df = gerar_metricas_corretivas(csv_path)
-    print(df)
-    csv_metricas = 'dados/DBMetricasCorretivas.csv'
-    df.to_csv(f'{csv_metricas}', index=False, encoding='utf-8')
-
