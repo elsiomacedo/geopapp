@@ -14,11 +14,13 @@ def carrega():
 
 def dashboard(df):
     st.markdown(titulo_page('Dashborad', 'Acompanhamento de Indicadores'), unsafe_allow_html=True)
- 
-
+             
     metricas_df = metricascorretivas(df)
 
-    referencia_atual = "2025-04"  # Exemplo de referência atual
+    referencia_atual = st.sidebar.selectbox('Ano/Mês de Referência', metricas_df['Referência'].unique(),)
+
+    #referencia_atual = st.selectbox('Ano/Mês:', metricas_df['Referência'].unique(),)
+    #referencia_atual = "2025-04"  # Exemplo de referência atual
     ano_atual = int(referencia_atual.split("-")[0])  # Extrai o ano
     mes_atual = int(referencia_atual.split("-")[1])  # Extrai o mês
 
@@ -36,6 +38,9 @@ def dashboard(df):
 
  # Cria a referência anterior no formato "YYYY-MM"
     referencia_anterior = f"{ano_anterior}-{mes_anterior:02d}"
+
+    if referencia_anterior not in metricas_df['Referência'].values:
+        referencia_anterior = referencia_atual
 
     # Obtém o valor da métrica para o ano e mês específicos
     os_abertas_atual = metricas_df[metricas_df['Referência'] == referencia_atual]['OS Abertas'].values[0]
