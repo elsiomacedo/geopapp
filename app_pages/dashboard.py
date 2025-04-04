@@ -14,10 +14,26 @@ def carrega():
 
 def dashboard(df):
     st.markdown(titulo_page('Dashborad', 'Acompanhamento de Indicadores'), unsafe_allow_html=True)
-             
+
     metricas_df = metricascorretivas(df)
 
-    referencia_atual = st.sidebar.selectbox('Ano/Mês de Referência', metricas_df['Referência'].unique(),)
+    select_equipe = st.sidebar.selectbox(
+        'Equipe', 
+        ['TODOS'] + sorted(df['EQUIPE'].dropna().unique(), reverse=True)
+    )
+
+    if select_equipe != 'TODOS':
+        metricas_df = metricascorretivas(df[df['EQUIPE'] == select_equipe])
+    else:
+        metricas_df = metricascorretivas(df)
+    
+    metricas_df['Referência'] = metricas_df['Referência'].astype(str)  # Ensure 'Referência' is a string
+    
+    referencia_atual = st.sidebar.selectbox(
+        'Ano/Mês de Referência', 
+        sorted(metricas_df['Referência'].unique(), reverse=True)
+    )
+
 
     #referencia_atual = st.selectbox('Ano/Mês:', metricas_df['Referência'].unique(),)
     #referencia_atual = "2025-04"  # Exemplo de referência atual

@@ -19,7 +19,7 @@ def metricascorretivas(df):
         inicio = pd.Timestamp(mes + "-01")
         fim = inicio + pd.offsets.MonthEnd(0)
         # dia_anterior = inicio - pd.Timedelta(days=1)
-        print(inicio, fim)
+
         # Filtrar OS do mês atual
         df_mes = df[df["Mês Referência"] == mes]
 
@@ -29,7 +29,7 @@ def metricascorretivas(df):
 
         # Backlogs abertos antes do mês e não atendidos
         backlog = df[(df["Data/Hora Abertura"] < inicio) & (df["Data/Hora Término"].isna())].shape[0]
-        print(backlog)
+
         # Backlogs atendidos no mês
         backlog_atendidos = df[(df["Data/Hora Abertura"] < inicio) &
                                (df["Data/Hora Término"] >= inicio) &
@@ -65,5 +65,5 @@ def metricascorretivas(df):
     df_resultados["Índice Crescimento Backlog"] = (df_resultados["Backlogs"].pct_change() * 100).round(1)
     df_resultados["Índice Atendimento Backlog"] = ((df_resultados["Backlogs Atendidos"] / df_resultados["Backlogs"].shift(1)) * 100).round(1)
     df_resultados["Índice de Reação (TMA/TME)"] = (df_resultados["TMA (h)"] / df_resultados["TME (h)"]).round(1)
-    print(df_resultados)
+
     return df_resultados
