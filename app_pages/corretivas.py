@@ -79,7 +79,8 @@ def corretivas():
             # Filtros de status
 
             palavras = st_tags(label='Digite Palavras para aplicar Filtros', 
-                               text='Enter para adicionar', value=[], 
+                               text='Enter para adicionar', value=[],     
+                               delimiters=[",", "\n"],  # <- Isso é importante
                                maxtags=10, key="filtro_status")
             
            # filtro_statu = st.session_state.filtro_status = palavras
