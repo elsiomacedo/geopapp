@@ -1,3 +1,4 @@
+
 import streamlit as st
 from streamlit_tags import st_tags
 import pandas as pd
@@ -5,105 +6,103 @@ from components import titulo_page
 from datetime import datetime
 import unicodedata
 
+# ========== Funções Utilitárias ==========
+
+def remover_acentos(texto):
+    if isinstance(texto, str):
+        return ''.join(c for c in unicodedata.normalize('NFD', texto) if unicodedata.category(c) != 'Mn')
+    return texto
 
 def colorir_status(value):
-    """
-    Função para aplicar cores na coluna STATUS.
-        Args:
-        value: Valor da célula. 
-    Returns:
-        str: String CSS para estilizar a célula.
-    """
-    CORES_STATUS = {
-        "ATENDIDO": "green",
-        "ABERTO": "red"
-    }       
-    if isinstance(value, str) and value in CORES_STATUS:
-             return f"color: {CORES_STATUS[value]}; font-weight: bold;"
+    cores = {"ATENDIDO": "green", "ABERTO": "red"}
+    if isinstance(value, str) and value in cores:
+        return f"color: {cores[value]}; font-weight: bold;"
     return ""
 
-# FUNÇÂO PRINCIPAL DO MÓDULO
+def carregar_dados(path_csv='dados/DBCorretivas.csv'):
+    df = pd.read_csv(path_csv, encoding='utf-8')
+    df['Data/Hora Abertura'] = pd.to_datetime(df['Data/Hora Abertura'], errors='coerce')
+    df['Data/Hora Término'] = pd.to_datetime(df['Data/Hora Término'], errors='coerce')
+    df['Referência'] = df['Data/Hora Abertura'].dt.strftime('%Y/%m')
+    df['Ref_Abertura'] = df['Data/Hora Abertura'].dt.strftime('%Y/%m')
+    df['Ref_Termino'] = df['Data/Hora Término'].dt.strftime('%Y/%m')
+    return df
 
-def corretivas(): 
-    COLUNAS_EXIBICAO = [
-        'Nº OS', 'STATUS', 'TIPO DE OS','NATUREZA', 'SOLICITANTE', 'DESCRIÇÃO', 
-        'QTD_TECNICOS', 'TECNICO', 'EQUIPE',  'Data/Hora Abertura', 'Data/Hora Início',
-       'Data/Hora Término', 'Atendimento', 'Solução', 'Execução'
-    ]    
+def filtrar_por_referencia(df, referencia):
+    return df[(df['Ref_Abertura'] == referencia) | (df['Ref_Termino'] == referencia)]
+
+def aplicar_filtros_textuais(df, palavras):
+    palavras_sem_acento = [remover_acentos(p).lower().strip() for p in palavras]
+    aplicar_filtro_status = "nao atendida" in palavras_sem_acento
+    palavras_sem_acento = [p for p in palavras_sem_acento if p != "nao atendida"]
+
+    df_sem_acento = df.astype(str).map(remover_acentos)
+    mascara = pd.Series(True, index=df.index)
+
+    if palavras_sem_acento:
+        mascara_texto = df_sem_acento.apply(
+            lambda row: all(p in ' '.join(row).lower() for p in palavras_sem_acento), axis=1)
+        mascara &= mascara_texto
+
+    if aplicar_filtro_status and "STATUS" in df.columns:
+        mascara &= df["STATUS"].astype(str).str.upper() != "ATENDIDO"
+
+    return df[mascara]
+
+# ========== Interface Streamlit ==========
+
+def corretivas():
     st.markdown(titulo_page('OS Corretivas', 'Criadas no mês, Abertas e Encerradas no Mês'), unsafe_allow_html=True)
-    df = pd.read_csv('dados/DBCorretivas.csv', encoding='utf-8')       
-    df = df.reindex(columns=COLUNAS_EXIBICAO)     
 
-    # Adicionar coluna de referência no formato yyyy/mm
-    df['Referência'] = pd.to_datetime(df['Data/Hora Abertura'], errors='coerce').dt.strftime('%Y/%m')
-    
-    referencia_atual = st.sidebar.selectbox('Referência', sorted(df['Referência'].unique(), reverse=True), label_visibility='visible')
-    
+    df = carregar_dados()
+    referencia_atual = st.sidebar.selectbox('Referência', sorted(df['Referência'].unique(), reverse=True))
+
     if referencia_atual:
-        df['Data/Hora Abertura'] = pd.to_datetime(df['Data/Hora Abertura'], errors='coerce')
-        df['Data/Hora Término'] = pd.to_datetime(df['Data/Hora Término'], errors='coerce')
+        df = filtrar_por_referencia(df, referencia_atual)
 
-        # Criar as colunas de referência para Abertura e Término
-        df['Ref_Abertura'] = df['Data/Hora Abertura'].dt.strftime('%Y/%m')
-        df['Ref_Termino'] = df['Data/Hora Término'].dt.strftime('%Y/%m')
+        colunas_default = [
+            'TIPO DE OS', 'NATUREZA', 'SOLICITANTE', 'DESCRIÇÃO',
+            'QTD_TECNICOS', 'TECNICO', 'EQUIPE', 'Data/Hora Abertura',
+            'Data/Hora Início', 'Data/Hora Término', 'Atendimento',
+            'Solução', 'Execução'
+        ]
+        # Só inicializa se ainda não existir
+        if 'filtro_status' not in st.session_state:
+            st.session_state.filtro_status = []
 
-        # Filtrar onde qualquer uma das referências seja igual à referência selecionada
-        df = df[(df['Ref_Abertura'] == referencia_atual) | (df['Ref_Termino'] == referencia_atual)]
-        df = df[COLUNAS_EXIBICAO]
+        if st.session_state.get('filtro_status')==[]:
+            titulo_expander = "Filtros e Visibilidade dos Campos ╰┈➤"
+        else:
+            titulo_expander = "Filtros (**Aplicados**) e Visibilidade dos Campos ╰┈➤"
+        
+        with st.expander(titulo_expander):
+            # Filtros de status
 
-        palavras = st_tags(
-            label='',
-            text=' 🔍 Enter para adicionar',
-            value=[],
-            maxtags=10,
-            key='palavras_badges'
-        )
-        # Função para remover acentos
-        def remover_acentos(texto):
-            if isinstance(texto, str):
-                return ''.join(
-                    c for c in unicodedata.normalize('NFD', texto)
-                    if unicodedata.category(c) != 'Mn'
-                )
-            return texto        
-        if palavras:
-                # Normaliza as palavras digitadas
-                palavras_sem_acento = [remover_acentos(p).lower().strip() for p in palavras]
+            palavras = st_tags(label='Digite Palavras para aplicar Filtros', 
+                               text='Enter para adicionar', value=[], 
+                               maxtags=10, key="filtro_status")
+            
+           # filtro_statu = st.session_state.filtro_status = palavras
+           
+            if palavras:
+                df = aplicar_filtros_textuais(df, palavras)
+            # Selecionar COlunas Visiveis
+            colunas_selecionadas = st.multiselect(
+            'Selecione as colunas para exibição:',
+            options=colunas_default,
+            default=['TIPO DE OS', 'NATUREZA', 'DESCRIÇÃO'],
+            key='colunas_exibicao'
+            )
+            colunas_exibir = ['Nº OS', 'STATUS'] + colunas_selecionadas
+            df = df[colunas_exibir]
 
-                # Verifica se o termo especial "nao atendida" está presente
-                aplicar_filtro_status = "nao atendida" in palavras_sem_acento
+            if st.session_state.get('filtro_status'):
+                st.write(f"Filtros aplicados: {st.session_state.filtro_status}")
+            else:
+                st.write("Nenhum filtro aplicado.")
+                
+        df_styled = df.style.map(colorir_status, subset=["STATUS"])
+        st.dataframe(df_styled, selection_mode="multi", use_container_width=True, hide_index=True)
 
-                # Remove "nao atendida" da lista de palavras
-                palavras_sem_acento = [p for p in palavras_sem_acento if p != "nao atendida"]
-
-                # Remove acentos do DataFrame (convertendo para string antes)
-                df_sem_acento = df.astype(str).map(remover_acentos)
-
-                # Começa com uma máscara booleana verdadeira
-                mascara = pd.Series(True, index=df.index)
-
-                # Aplica filtro textual normal (com as palavras restantes)
-                if palavras_sem_acento:
-                    mascara_texto = df_sem_acento.apply(
-                        lambda row: all(p in ' '.join(row).lower() for p in palavras_sem_acento),
-                        axis=1
-                    )
-                    mascara &= mascara_texto
-
-                # Aplica filtro STATUS != ATENDIDO, se necessário
-                if aplicar_filtro_status and "STATUS" in df.columns:
-                    mascara &= df["STATUS"].astype(str).str.upper() != "ATENDIDO"
-
-                # Aplica os filtros ao DataFrame original
-                df = df[mascara]
-    #df = df.astype(str).applymap(remover_acentos)            
-    #df = df.style.applymap(colorir_status, subset=["STATUS"])
-    df = df.style.map(colorir_status, subset=["STATUS"])    
-    st.dataframe(df, selection_mode="multi", use_container_width= True, hide_index=True)
-
-
-    #df = df.style.map(colorir_status, subset=["STATUS"])                                       
-    #st.dataframe(df, selection_mode="multi", use_container_width= True, hide_index=True)
-    
 if __name__ == "__page__":
     corretivas()
