@@ -5,7 +5,7 @@ from typing import Optional
 from datetime import datetime
 import time
 from components import titulo_page
-from metricas import metricascorretivas
+#from metricas import metricascorretivas
 
 CORE_XLS = 'historico_oss_corretivas.xls'
 TECNO_XLS = 'relatorio_historico_atendimento.xls'

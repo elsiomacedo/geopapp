@@ -10,7 +10,7 @@ from metricas import metricascorretivas
 def carrega():
     # Definir o caminho do arquivo CSV
     csv_path = "dados/DBCorretivas.csv"
-    return pd.read_csv(csv_path)    
+    return pd.read_csv(csv_path, encoding='utf-8')       
 
 def dashboard(df):
     st.markdown(titulo_page('Dashborad', 'Acompanhamento de Indicadores'), unsafe_allow_html=True)
